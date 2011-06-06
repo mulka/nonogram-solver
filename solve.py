@@ -4,6 +4,12 @@ import string
 import copy
 import types
 
+def solve_sub_row(counts, row, start):
+    sub_row = solve_row(counts, row[start:len(row)])
+    for x in xrange(start, len(row)):
+        row[x] = sub_row[x-start]
+    return row
+
 def solve_row(counts, row):
     """
     >>> solve_row([], [None])
@@ -84,9 +90,7 @@ def solve_row(counts, row):
 
     #first in row is False
     if row[0] == False:
-        sub_row = solve_row(counts, row[1:len(row)])
-        for x in xrange(1, len(row)):
-            row[x] = sub_row[x-1]
+        row = solve_sub_row(counts, row, 1)
         return row
 
     #first in row is True
@@ -97,9 +101,7 @@ def solve_row(counts, row):
             x += 1
         row[x] = False
         x += 1
-        sub_row = solve_row(counts[1:len(counts)], row[x:len(row)])
-        for i in xrange(x, len(row)):
-            row[i] = sub_row[i-x]
+        row = solve_sub_row(counts[1:len(counts)], row, x)
         return row
 
     #first count won't fit before first False
@@ -109,9 +111,7 @@ def solve_row(counts, row):
     if x < counts[0]:
         for i in xrange(x):
             row[i] = False
-        sub_row = solve_row(counts, row[x:len(row)])
-        for i in xrange(x, len(row)):
-            row[i] = sub_row[i-x]
+        row = solve_sub_row(counts, row, x)
         return row
     
     if len(counts) == 1:
