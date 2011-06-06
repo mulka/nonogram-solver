@@ -114,29 +114,27 @@ def solve_row(counts, row):
             row[i] = sub_row[i-x]
         return row
     
-    #too far away to be able to complete
     if len(counts) == 1:
-        first = None
-        for x in xrange(len(row)):
-            if row[x] == True:
-                first = x
-                break
-        
-        if first != None:
-            changed = False
-            for x in xrange(counts[0] + first, len(row)):
-                changed = True
-                row[x] = False
-            if changed:
-                return row
-        
-    #one count and it is more than half the row
-    if len(counts) == 1 and counts[0] > len(row) / 2:
-        count = counts[0]
-        for x in xrange(len(row) - count, count):
-            row[x] = True
-        return row
-        
+        if counts[0] > len(row) / 2:
+            #one count and it is more than half the row
+            count = counts[0]
+            for x in xrange(len(row) - count, count):
+                row[x] = True
+            return row
+        else:
+            #too far away to be able to complete
+            first = None
+            for x in xrange(len(row)):
+                if row[x] == True:
+                    first = x
+                    break
+            if first != None:
+                changed = False
+                for x in xrange(counts[0] + first, len(row)):
+                    changed = True
+                    row[x] = False
+                if changed:
+                    return row
     return row
 
 def solve_row_both(counts, row):
