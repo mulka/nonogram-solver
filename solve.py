@@ -41,10 +41,16 @@ def solve_row(counts, row):
     >>> solve_row([2], [None, True, None, None])
     [None, True, None, False]
     
-    TODO: assume positions of all except one count
-    solve_row([1, 2], [None, None, None, None, None])
+    assume positions of all except one count
+    >>> solve_row([1, 2], [None, None, None, None, None])
     [None, None, None, True, None]
 
+    >>> solve_row([1, 1, 1, 2], [None, None, None, None, None, None, None, None, None])
+    [None, None, None, None, None, None, None, True, None]
+    
+    TODO:
+    solve_row([1, 7], [None, False, True, None, None, None, None, None, None, None])
+    
     TODO: doesn't fit on one size of False
     solve_row([1, 1], [None, False, None, None])
     [True, False, None, None]
@@ -113,6 +119,16 @@ def solve_row(counts, row):
             row[i] = False
         row = solve_sub_row(counts, row, x)
         return row
+    
+    #assume positions of all except one count
+    if len(counts) > 1:
+        temp_counts = counts[0:-1]
+        x = sum(temp_counts) + len(counts) - 1
+        count = counts[-1]
+        sub_row = row[x:len(row)]
+        if count > len(sub_row) / 2:
+            for i in xrange(len(sub_row) - count, count):
+                row[i+x] = True
     
     if len(counts) == 1:
         if counts[0] > len(row) / 2:
