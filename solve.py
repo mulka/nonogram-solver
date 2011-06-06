@@ -4,7 +4,7 @@ import string
 import copy
 import types
 
-def solve_row(counts, row, reverse=False):
+def solve_row(counts, row):
     """
     >>> solve_row([], [None])
     [False]
@@ -26,16 +26,7 @@ def solve_row(counts, row, reverse=False):
 
     >>> solve_row([2], [None, False, None, None, None, None])
     [False, False, None, None, None, None]
-    
-    >>> solve_row([7], [None, None, None, True, None, None, None, None, False, None])
-    [None, True, True, True, True, True, True, None, False, False]
-
-    >>> solve_row([2], [None, True, None])
-    [None, True, None]
-    
-    >>> solve_row([2], [None, None, False])
-    [True, True, False]
-    
+        
     row already completed:
     >>> solve_row([1], [None, True, None])
     [False, True, False]
@@ -138,14 +129,6 @@ def solve_row(counts, row, reverse=False):
                 row[x] = False
             if changed:
                 return row
-    
-    if not reverse:
-        counts.reverse()
-        row.reverse()
-        row = solve_row(counts, row, True)
-        counts.reverse()
-        row.reverse()
-        return row
         
     #one count and it is more than half the row
     if len(counts) == 1 and counts[0] > len(row) / 2:
@@ -154,6 +137,23 @@ def solve_row(counts, row, reverse=False):
             row[x] = True
         return row
         
+    return row
+
+def solve_row_both(counts, row):
+    """
+    >>> solve_row_both([7], [None, None, None, True, None, None, None, None, False, None])
+    [None, True, True, True, True, True, True, None, False, False]
+    
+    >>> solve_row_both([2], [None, None, False])
+    [True, True, False]
+    
+    """
+    row = solve_row(counts, row)
+    counts.reverse()
+    row.reverse()
+    row = solve_row(counts, row)
+    counts.reverse()
+    row.reverse()
     return row
 
 def solve(row_counts, col_counts, grid):
@@ -167,7 +167,7 @@ def solve(row_counts, col_counts, grid):
             col = []
             for y in xrange(height):
                 col.append(grid[y][x])
-            col = solve_row(col_counts[x], col)
+            col = solve_row_both(col_counts[x], col)
             for y in xrange(height):
                 if col[y] != None and grid[y][x] != col[y]:
                     changed = True
@@ -175,7 +175,7 @@ def solve(row_counts, col_counts, grid):
                 
         for y in xrange(height):
             row = copy.deepcopy(grid[y])
-            row = solve_row(row_counts[y], row)
+            row = solve_row_both(row_counts[y], row)
             for x in xrange(1):
                 if row[x] != None and grid[y][x] != row[x]:
                     changed = True
