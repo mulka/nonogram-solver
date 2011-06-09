@@ -3,6 +3,7 @@ import sys
 import string
 import copy
 import types
+from data_diff import data_diff
 
 def get_permutations(counts, length):
     """
@@ -155,6 +156,34 @@ def solve(row_counts, col_counts, grid):
         
     return grid
 
+def check_solution(grid):
+    row_counts = []
+    col_counts = []
+    
+    for y in xrange(len(grid)):
+        row_counts.append([0])
+    for x in xrange(len(grid[0])):
+        col_counts.append([0])
+    
+    for y in xrange(len(grid)):
+        for x in xrange(len(grid[0])):
+            if grid[y][x] == True:
+                row_counts[y][-1] += 1
+                col_counts[x][-1] += 1
+            elif grid[y][x] == False:
+                if row_counts[y][-1] != 0:
+                    row_counts[y].append(0)
+                if col_counts[x][-1] != 0:
+                    col_counts[x].append(0)
+    
+    for y in xrange(len(grid)):
+        if row_counts[y][-1] == 0:
+            row_counts[y].pop()
+    for x in xrange(len(grid[0])):
+        if col_counts[x][-1] == 0:
+            col_counts[x].pop()
+    
+    return [row_counts, col_counts]
 
 def solve_from_file(filename):
     f = open(filename)
@@ -258,6 +287,18 @@ def solve_from_file(filename):
             inner_grid[y].append(grid[y+counts_height][x+counts_width])
 
     grid = solve(row_counts, col_counts, inner_grid)
+
+    complete = True
+    for row in grid:
+        for item in row:
+            if item == None:
+                complete = False
+
+    if complete:
+        l = check_solution(grid)
+        if data_diff(l[0], row_counts) or data_diff(l[1], col_counts):
+            print 'FAIL!'
+            exit()
 
     for y in xrange(counts_height):
         for x in xrange(counts_width):
