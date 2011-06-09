@@ -4,11 +4,58 @@ import string
 import copy
 import types
 
-def solve_sub_row(counts, row, start):
-    sub_row = solve_row(counts, row[start:len(row)])
-    for x in xrange(start, len(row)):
-        row[x] = sub_row[x-start]
-    return row
+def get_permutations(counts, length):
+    """
+    >>> get_permutations([], 1)
+    [[False]]
+    
+    >>> get_permutations([1], 1)
+    [[True]]
+    
+    >>> get_permutations([2], 3)
+    [[True, True, False], [False, True, True]]
+    
+    >>> get_permutations([2], 4)
+    [[True, True, False, False], [False, True, True, False], [False, False, True, True]]
+    
+    >>> get_permutations([1, 1], 4)
+    [[True, False, True, False], [True, False, False, True], [False, True, False, True]]
+
+    >>> get_permutations([1, 2], 5)
+    [[True, False, True, True, False], [True, False, False, True, True], [False, True, False, True, True]]
+
+    >>> get_permutations([1, 1, 2], 7)
+    [[True, False, True, False, True, True, False], [True, False, True, False, False, True, True], [True, False, False, True, False, True, True], [False, True, False, True, False, True, True]]
+    """
+    if len(counts) == 0:
+        row = []
+        for x in xrange(length):
+            row.append(False)
+        return [row]
+
+    permutations = []
+    
+    for start in xrange(length - counts[0] + 1):
+        permutation = []
+        for x in xrange(start):
+            permutation.append(False)
+        for x in xrange(start, start + counts[0]):
+            permutation.append(True)
+        x = start + counts[0]
+        if x < length:
+            permutation.append(False)
+            x += 1
+        if x == length and len(counts) == 0:
+            permutations.append(permutation)
+            break
+        sub_start = x
+        sub_rows = get_permutations(counts[1:len(counts)], length - sub_start)
+        for sub_row in sub_rows:
+            sub_permutation = copy.deepcopy(permutation)
+            for x in xrange(sub_start, length):
+                sub_permutation.append(sub_row[x-sub_start])
+            permutations.append(sub_permutation)
+    return permutations
 
 def solve_row(counts, row):
     """
@@ -48,127 +95,38 @@ def solve_row(counts, row):
     >>> solve_row([1, 1, 1, 2], [None, None, None, None, None, None, None, None, None])
     [None, None, None, None, None, None, None, True, None]
     
-    TODO:
-    solve_row([1, 7], [None, False, True, None, None, None, None, None, None, None])
+    >>> solve_row([1, 7], [None, False, True, None, None, None, None, None, None, None])
+    [True, False, True, True, True, True, True, True, True, False]
     
-    TODO: doesn't fit on one size of False
-    solve_row([1, 1], [None, False, None, None])
+    doesn't fit on one size of False
+    >>> solve_row([1, 1], [None, False, None, None])
     [True, False, None, None]
 
-    TODO: doesn't fit on one size of False
-    solve_row([1, 2], [None, None, False, None, None, None])
+    doesn't fit on one size of False
+    >>> solve_row([1, 2], [None, None, False, None, None, None])
     [None, None, False, None, True, None]
     
-    TODO: already started on one side of False
-    solve_row([4], [None, None, None, None, False, None, True, None, None, None])
+    already started on one side of False
+    >>> solve_row([4], [None, None, None, None, False, None, True, None, None, None])
     [False, False, False, False, False, None, True, True, True, None]
-    
     """
-    #all Xs
-    if len(counts) == 0:
+    permutations = get_permutations(counts, len(row))
+    valid_permutations = []
+    for permutation in permutations:
+        valid = True
         for x in xrange(len(row)):
-            row[x] = False
-        return row
-    
-    #entire row can be filled
-    if sum(counts) + len(counts) - 1 == len(row):
-        x = 0
-        for count in counts:
-            for i in xrange(count):
-                row[x] = True
-                x += 1
-            if x < len(row):
-                row[x] = False
-                x += 1
-        return row
+            if row[x] != None and row[x] != permutation[x]:
+                valid = False
+        if valid:
+            valid_permutations.append(permutation)
+
+    new_row = copy.deepcopy(valid_permutations[0])
+    for permutation in valid_permutations:
+        for x in xrange(len(row)):
+            if new_row[x] != permutation[x]:
+                new_row[x] = None
         
-    #row is already complete
-    count = 0
-    i = 0
-    for x in xrange(len(row)):
-        if row[x] == True:
-            count += 1
-    if sum(counts) == count:
-        for x in xrange(len(row)):
-            if row[x] != True:
-                row[x] = False
-        return row
-
-    #first in row is False
-    if row[0] == False:
-        row = solve_sub_row(counts, row, 1)
-        return row
-
-    #first in row is True
-    if row[0] == True:
-        x = 0
-        for i in xrange(counts[0]):
-            row[x] = True
-            x += 1
-        row[x] = False
-        x += 1
-        row = solve_sub_row(counts[1:len(counts)], row, x)
-        return row
-
-    #first count won't fit before first False
-    x = 0
-    while x < len(row) and row[x] != False:
-        x += 1
-    if x < counts[0]:
-        for i in xrange(x):
-            row[i] = False
-        row = solve_sub_row(counts, row, x)
-        return row
-    
-    #assume positions of all except one count
-    if len(counts) > 1:
-        temp_counts = counts[0:-1]
-        x = sum(temp_counts) + len(counts) - 1
-        count = counts[-1]
-        sub_row = row[x:len(row)]
-        if count > len(sub_row) / 2:
-            for i in xrange(len(sub_row) - count, count):
-                row[i+x] = True
-    
-    if len(counts) == 1:
-        if counts[0] > len(row) / 2:
-            #one count and it is more than half the row
-            count = counts[0]
-            for x in xrange(len(row) - count, count):
-                row[x] = True
-            return row
-        else:
-            #too far away to be able to complete
-            first = None
-            for x in xrange(len(row)):
-                if row[x] == True:
-                    first = x
-                    break
-            if first != None:
-                changed = False
-                for x in xrange(counts[0] + first, len(row)):
-                    changed = True
-                    row[x] = False
-                if changed:
-                    return row
-    return row
-
-def solve_row_both(counts, row):
-    """
-    >>> solve_row_both([7], [None, None, None, True, None, None, None, None, False, None])
-    [None, True, True, True, True, True, True, None, False, False]
-    
-    >>> solve_row_both([2], [None, None, False])
-    [True, True, False]
-    
-    """
-    row = solve_row(counts, row)
-    counts.reverse()
-    row.reverse()
-    row = solve_row(counts, row)
-    counts.reverse()
-    row.reverse()
-    return row
+    return new_row
 
 def solve(row_counts, col_counts, grid):
     width = len(grid[0])
@@ -181,7 +139,7 @@ def solve(row_counts, col_counts, grid):
             col = []
             for y in xrange(height):
                 col.append(grid[y][x])
-            col = solve_row_both(col_counts[x], col)
+            col = solve_row(col_counts[x], col)
             for y in xrange(height):
                 if col[y] != None and grid[y][x] != col[y]:
                     changed = True
@@ -189,7 +147,7 @@ def solve(row_counts, col_counts, grid):
                 
         for y in xrange(height):
             row = copy.deepcopy(grid[y])
-            row = solve_row_both(row_counts[y], row)
+            row = solve_row(row_counts[y], row)
             for x in xrange(1):
                 if row[x] != None and grid[y][x] != row[x]:
                     changed = True
