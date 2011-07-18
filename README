@@ -1,0 +1,10 @@
+This is a nonogram solver written in python. It can't solve all nonograms yet, but it will go as far as it can and then display the intermediate solution. You can take that solution, put it in a text file with hints added and it will try again.
+
+If you don't know what a nonogram is:
+http://en.wikipedia.org/wiki/Nonogram
+
+usage:
+python solve.py <board file path>
+
+example:
+python solve.py boards/1-1-1.txt
