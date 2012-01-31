@@ -149,7 +149,7 @@ def solve(row_counts, col_counts, grid):
         for y in xrange(height):
             row = copy.deepcopy(grid[y])
             row = solve_row(row_counts[y], row)
-            for x in xrange(1):
+            for x in xrange(width):
                 if row[x] != None and grid[y][x] != row[x]:
                     changed = True
             grid[y] = row
